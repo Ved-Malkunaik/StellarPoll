@@ -1,6 +1,7 @@
 # A StellarPoll (Introduction)
-it is a simple voting dapp which allows users to vote on a question.
-
+It is a simple voting dapp which allows users to vote on a question.
+It is an application that runs on a blockchain network instead of a centralized server.
+It uses smart contracts to ensure transparency, security, and trust without relying on a single authority.
 # Pre-Requirements :
 1. Install Stellar Wallet extension from chrome
 2. create an account on stellar
