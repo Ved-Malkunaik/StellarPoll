@@ -26,7 +26,7 @@ open this folder on VScode ----> go to terminal ----> cd frontend ----> run a co
 
 Contract Address : "CCFYHPXEHMQKWXJLJXZHUL72VB523UKUZBFYFHG6H74F24AETYO6HAA3"
 
-View on Stellar Expdert :
+View on Stellar Expert :
 
 <img width="1918" height="921" alt="image" src="https://github.com/user-attachments/assets/df35e821-8b83-442b-8187-17f4df6a3db6" />
 
