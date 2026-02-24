@@ -19,3 +19,19 @@ open this folder on VScode ----> go to terminal ----> cd frontend ----> run a co
 <img width="1919" height="917" alt="image" src="https://github.com/user-attachments/assets/ff81c797-cdbb-4674-8e49-4cdf11b909a4" />
 
 <img width="1919" height="915" alt="image" src="https://github.com/user-attachments/assets/cfc5ea06-ff89-4233-ab1e-12fc2ced5cbe" />
+
+
+
+# Contract Details :
+
+Contract Address : "CCFYHPXEHMQKWXJLJXZHUL72VB523UKUZBFYFHG6H74F24AETYO6HAA3"
+
+View on Stellar Expdert :
+
+<img width="1918" height="921" alt="image" src="https://github.com/user-attachments/assets/df35e821-8b83-442b-8187-17f4df6a3db6" />
+
+History on Freighter wallet :
+
+<img width="439" height="743" alt="image" src="https://github.com/user-attachments/assets/277673ae-0c1e-4e15-a4f1-d115b5267b9b" />
+
+
