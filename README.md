@@ -35,3 +35,30 @@ History on Freighter wallet :
 <img width="439" height="743" alt="image" src="https://github.com/user-attachments/assets/277673ae-0c1e-4e15-a4f1-d115b5267b9b" />
 
 
+## 3 TEST PASSED RESULTS :
+
+1.  Finished `test` profile [unoptimized + debuginfo] target(s) in 2.72s
+     Running unittests src\lib.rs (C:\Users\vedma\OneDrive\Desktop\Rust\Live_Poll\target\debug\deps\poll-d2cc55ae4ab7beae.exe)
+
+running 1 test
+test test::test_init_and_vote ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.05s
+
+2.  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
+     Running unittests src\lib.rs (C:\Users\vedma\OneDrive\Desktop\Rust\Live_Poll\target\debug\deps\poll-d2cc55ae4ab7beae.exe)
+
+running 1 test
+test test::test_change_and_undo_vote ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.04s
+
+3.  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src\lib.rs (C:\Users\vedma\OneDrive\Desktop\Rust\Live_Poll\target\debug\deps\poll-d2cc55ae4ab7beae.exe)
+
+running 1 test
+test test::test_invalid_option - should panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s
+
+
