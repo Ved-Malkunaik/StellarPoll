@@ -1,7 +1,7 @@
-
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype,Env, Vec, Address, Map, String};
-
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, Address, Env, Map, String, Vec,
+};
 
 use soroban_sdk::contractevent;
 
@@ -72,8 +72,14 @@ pub struct PollContract;
 
 #[contractimpl]
 impl PollContract {
-
-    pub fn init(env: Env, admin: Address, token: Address, fee: i128, question: String, options: Vec<String>) -> Result<(), PollError> {
+    pub fn init(
+        env: Env,
+        admin: Address,
+        token: Address,
+        fee: i128,
+        question: String,
+        options: Vec<String>,
+    ) -> Result<(), PollError> {
         if options.len() < 2 {
             panic!("At least 2 options required");
         }
@@ -93,11 +99,13 @@ impl PollContract {
         }
 
         env.storage().instance().set(&DataKey::IsInit, &true);
-        env.storage().instance().extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND);
 
         Ok(())
     }
-  
+
     pub fn vote(env: Env, voter: Address, option_index: u32) -> Result<(), PollError> {
         voter.require_auth();
 
@@ -121,16 +129,18 @@ impl PollContract {
         if fee > 0 {
             let token_addr: Address = env.storage().instance().get(&DataKey::Token).unwrap();
             let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
-            
+
             // Standard Soroban Token Client call
             let token_client = soroban_sdk::token::Client::new(&env, &token_addr);
-            
+
             // This is the cross-contract call
             token_client.transfer(&voter, &admin, &fee);
         }
         // ----------------------------------------
 
-        env.storage().instance().extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND);
 
         let voter_key = DataKey::VoterChoice(voter.clone());
         let maybe_existing_choice: Option<u32> = env.storage().persistent().get(&voter_key);
@@ -180,7 +190,6 @@ impl PollContract {
         Ok(())
     }
 
- 
     fn update_vote_count(env: &Env, index: u32, increment: bool) {
         let count: u32 = env
             .storage()
@@ -213,21 +222,31 @@ impl PollContract {
 
         let mut votes: Map<u32, u32> = Map::new(&env);
         for i in 0..options.len() {
-            let count = env.storage().instance()
+            let count = env
+                .storage()
+                .instance()
                 .get(&DataKey::VoteCount(i))
                 .unwrap_or(0);
             votes.set(i, count);
         }
 
-        let admin = env.storage().instance()
+        let admin = env
+            .storage()
+            .instance()
             .get(&DataKey::Admin)
-            .unwrap_or(Address::from_string(&String::from_str(&env, "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"))); // Default dummy
-        let token = env.storage().instance()
+            .unwrap_or(Address::from_string(&String::from_str(
+                &env,
+                "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+            ))); // Default dummy
+        let token = env
+            .storage()
+            .instance()
             .get(&DataKey::Token)
-            .unwrap_or(Address::from_string(&String::from_str(&env, "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF")));
-        let fee = env.storage().instance()
-            .get(&DataKey::Fee)
-            .unwrap_or(0);
+            .unwrap_or(Address::from_string(&String::from_str(
+                &env,
+                "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+            )));
+        let fee = env.storage().instance().get(&DataKey::Fee).unwrap_or(0);
 
         PollState {
             question,
@@ -238,20 +257,15 @@ impl PollContract {
             fee,
         }
     }
-   
+
     pub fn has_voted(env: Env, voter: Address) -> bool {
-        env.storage()
-            .persistent()
-            .has(&DataKey::VoterChoice(voter))
+        env.storage().persistent().has(&DataKey::VoterChoice(voter))
     }
-  
+
     pub fn get_voter_choice(env: Env, voter: Address) -> Option<u32> {
-        env.storage()
-            .persistent()
-            .get(&DataKey::VoterChoice(voter))
+        env.storage().persistent().get(&DataKey::VoterChoice(voter))
     }
 }
-
 
 #[cfg(test)]
 mod test;

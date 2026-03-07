@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{Env, testutils::Address as _, String};
+use soroban_sdk::{testutils::Address as _, Env, String};
 
 #[test]
 fn test_token() {
@@ -17,7 +17,7 @@ fn test_token() {
 
     let name = String::from_str(&env, "PollToken");
     let symbol = String::from_str(&env, "POLL");
-    
+
     client.initialize(&admin, &18, &name, &symbol);
 
     assert_eq!(client.name(), name);

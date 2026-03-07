@@ -1,7 +1,11 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{Env, testutils::{Address as _, Events}, vec, symbol_short};
+use soroban_sdk::{
+    symbol_short,
+    testutils::{Address as _, Events},
+    vec, Env,
+};
 
 #[test]
 fn test_init_and_vote() {
@@ -16,7 +20,11 @@ fn test_init_and_vote() {
     let client = PollContractClient::new(&env, &contract_id);
 
     let question = String::from_str(&env, "Favorite Color?");
-    let options = vec![&env, String::from_str(&env, "Red"), String::from_str(&env, "Blue")];
+    let options = vec![
+        &env,
+        String::from_str(&env, "Red"),
+        String::from_str(&env, "Blue"),
+    ];
 
     client.init(&admin, &token, &fee, &question, &options);
 
@@ -53,30 +61,31 @@ fn test_change_and_undo_vote() {
     let token = env.register_stellar_asset_contract(admin.clone());
 
     let question = String::from_str(&env, "Q?");
-    let options = vec![&env, String::from_str(&env, "A"), String::from_str(&env, "B")];
+    let options = vec![
+        &env,
+        String::from_str(&env, "A"),
+        String::from_str(&env, "B"),
+    ];
     client.init(&admin, &token, &0, &question, &options);
 
     let voter = Address::generate(&env);
-    
 
     client.vote(&voter, &0);
     assert_eq!(client.get_poll_state().votes.get(0).unwrap(), 1);
     assert_eq!(client.get_voter_choice(&voter), Some(0));
 
-  
     client.vote(&voter, &1);
     assert_eq!(client.get_poll_state().votes.get(0).unwrap(), 0);
     assert_eq!(client.get_poll_state().votes.get(1).unwrap(), 1);
     assert_eq!(client.get_voter_choice(&voter), Some(1));
 
-  
     client.vote(&voter, &1);
     assert_eq!(client.get_poll_state().votes.get(1).unwrap(), 0);
     assert_eq!(client.get_voter_choice(&voter), None);
 }
 
 #[test]
-#[should_panic(expected = "Error(Contract, #1)")] 
+#[should_panic(expected = "Error(Contract, #1)")]
 fn test_invalid_option() {
     let env = Env::default();
     env.mock_all_auths();
@@ -88,10 +97,14 @@ fn test_invalid_option() {
     let token = env.register_stellar_asset_contract(admin.clone());
 
     let question = String::from_str(&env, "Q?");
-    let options = vec![&env, String::from_str(&env, "A"), String::from_str(&env, "B")];
+    let options = vec![
+        &env,
+        String::from_str(&env, "A"),
+        String::from_str(&env, "B"),
+    ];
 
     client.init(&admin, &token, &0, &question, &options);
 
     let voter = Address::generate(&env);
-    client.vote(&voter, &2); 
+    client.vote(&voter, &2);
 }

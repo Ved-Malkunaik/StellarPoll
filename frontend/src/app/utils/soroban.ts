@@ -9,11 +9,8 @@ import {
     Networks,
     TransactionBuilder,
     rpc as SorobanRpc,
-    xdr,
     scValToNative,
     nativeToScVal,
-    TimeoutInfinite,
-    Operation,
     Address,
     Account
 } from "@stellar/stellar-sdk";
@@ -65,7 +62,7 @@ export async function getPollState(): Promise<PollState | null> {
             }
         ).addOperation(contract.call("get_poll_state")).setTimeout(30).build();
 
-        let simulated = await server.simulateTransaction(tx);
+        const simulated = await server.simulateTransaction(tx);
 
         if (SorobanRpc.Api.isSimulationSuccess(simulated) && simulated.result) {
             const scVal = simulated.result.retval;
@@ -74,7 +71,7 @@ export async function getPollState(): Promise<PollState | null> {
 
             let question: string;
             let options: string[];
-            let votesMap: any;
+            let votesMap: unknown;
             let admin: string;
             let token: string;
             let fee: bigint;
@@ -91,15 +88,17 @@ export async function getPollState(): Promise<PollState | null> {
             }
 
             // Convert Map to array of votes
-            const votes = options.map((_: any, i: number) => {
+            const votes = options.map((_: unknown, i: number) => {
                 const key = BigInt(i);
-                if (votesMap && typeof (votesMap as any).get === 'function') {
-                    return Number((votesMap as any).get(key) ?? (votesMap as any).get(i) ?? 0);
+                if (votesMap instanceof Map) {
+                    const map = votesMap as Map<unknown, unknown>;
+                    return Number(map.get(key) ?? map.get(i) ?? 0);
                 } else if (Array.isArray(votesMap)) {
-                    const entry = votesMap.find(([k]: any) => BigInt(k) === key || Number(k) === i);
+                    const entry = (votesMap as unknown[][]).find(([k]: unknown[]) => BigInt(k as string | number | bigint) === key || Number(k) === i);
                     return entry ? Number(entry[1]) : 0;
                 } else if (typeof votesMap === 'object' && votesMap !== null) {
-                    return Number((votesMap as any)[i] ?? (votesMap as any)[i.toString()] ?? 0);
+                    const obj = votesMap as Record<string, unknown>;
+                    return Number(obj[i] ?? obj[i.toString()] ?? 0);
                 }
                 return 0;
             });
@@ -119,7 +118,13 @@ export async function getPollState(): Promise<PollState | null> {
     return null;
 }
 
-export async function vote(optionIndex: number, userAddress: string): Promise<any> {
+export interface VoteResult {
+    status: string;
+    error?: string;
+    hash?: string;
+}
+
+export async function vote(optionIndex: number, userAddress: string): Promise<VoteResult | null> {
     const contract = new Contract(CONTRACT_ID!);
 
     console.log("Fetching account info for:", userAddress);
@@ -140,19 +145,18 @@ export async function vote(optionIndex: number, userAddress: string): Promise<an
     let preparedTx;
     try {
         preparedTx = await server.prepareTransaction(tx);
-    } catch (e: any) {
-        console.warn("Soroban simulation failed:", e.message || e);
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn("Soroban simulation failed:", msg);
 
         let errorMessage = "Simulation failed. Please check your connection.";
         // Map new contract error codes
-        if (e.message) {
-            if (e.message.includes("Error(Contract, #1)")) {
-                errorMessage = "Invalid Option Selected";
-            } else if (e.message.includes("Error(Contract, #2)")) {
-                errorMessage = "Poll Not Initialized";
-            } else if (e.message.includes("Error(Contract, #3)")) {
-                errorMessage = "Poll Already Initialized";
-            }
+        if (msg.includes("Error(Contract, #1)")) {
+            errorMessage = "Invalid Option Selected";
+        } else if (msg.includes("Error(Contract, #2)")) {
+            errorMessage = "Poll Not Initialized";
+        } else if (msg.includes("Error(Contract, #3)")) {
+            errorMessage = "Poll Already Initialized";
         }
 
         return { status: "ERROR", error: errorMessage };
@@ -169,8 +173,8 @@ export async function vote(optionIndex: number, userAddress: string): Promise<an
     let signedXdr: string | undefined;
     if (typeof signedTxResponse === 'string') {
         signedXdr = signedTxResponse;
-    } else {
-        signedXdr = signedTxResponse.signedTxXdr;
+    } else if (signedTxResponse && typeof signedTxResponse === 'object' && 'signedTxXdr' in signedTxResponse) {
+        signedXdr = (signedTxResponse as { signedTxXdr: string }).signedTxXdr;
     }
 
     if (!signedXdr) return null;
@@ -179,15 +183,15 @@ export async function vote(optionIndex: number, userAddress: string): Promise<an
         const sendResponse = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
         if (sendResponse.status === "PENDING") {
             let status: string = sendResponse.status;
-            let response: any = sendResponse;
+            let response: SorobanRpc.Api.GetTransactionResponse = sendResponse as unknown as SorobanRpc.Api.GetTransactionResponse;
             while (status === "PENDING") {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 response = await server.getTransaction(sendResponse.hash);
                 status = response.status;
             }
-            return response;
+            return response as unknown as VoteResult;
         }
-        return sendResponse;
+        return sendResponse as unknown as VoteResult;
     } catch (e) {
         console.error("Error sending transaction:", e);
         return null;
@@ -211,7 +215,7 @@ export async function getVoterChoice(userAddress: string): Promise<number> {
             }
         ).addOperation(contract.call("get_voter_choice", new Address(userAddress).toScVal())).setTimeout(30).build();
 
-        let simulated = await server.simulateTransaction(tx);
+        const simulated = await server.simulateTransaction(tx);
 
         if (SorobanRpc.Api.isSimulationSuccess(simulated) && simulated.result) {
             const result = scValToNative(simulated.result.retval);
@@ -239,7 +243,7 @@ export async function getTokenBalance(userAddress: string, tokenAddress: string)
             }
         ).addOperation(contract.call("balance", new Address(userAddress).toScVal())).setTimeout(30).build();
 
-        let simulated = await server.simulateTransaction(tx);
+        const simulated = await server.simulateTransaction(tx);
 
         if (SorobanRpc.Api.isSimulationSuccess(simulated) && simulated.result) {
             return BigInt(scValToNative(simulated.result.retval));

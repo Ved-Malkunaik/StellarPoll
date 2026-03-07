@@ -41,32 +41,47 @@ impl Token {
         let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
         admin.require_auth();
 
-        if amount <= 0 { panic!("amount must be positive"); }
+        if amount <= 0 {
+            panic!("amount must be positive");
+        }
 
         let key = DataKey::Balance(to.clone());
         let current_balance: i128 = env.storage().persistent().get(&key).unwrap_or(0);
-        env.storage().persistent().set(&key, &(current_balance + amount));
+        env.storage()
+            .persistent()
+            .set(&key, &(current_balance + amount));
     }
 
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
         from.require_auth();
 
-        if amount <= 0 { panic!("amount must be positive"); }
+        if amount <= 0 {
+            panic!("amount must be positive");
+        }
 
         let from_key = DataKey::Balance(from.clone());
         let to_key = DataKey::Balance(to.clone());
 
         let from_balance: i128 = env.storage().persistent().get(&from_key).unwrap_or(0);
-        if from_balance < amount { panic!("insufficient balance"); }
+        if from_balance < amount {
+            panic!("insufficient balance");
+        }
 
         let to_balance: i128 = env.storage().persistent().get(&to_key).unwrap_or(0);
 
-        env.storage().persistent().set(&from_key, &(from_balance - amount));
-        env.storage().persistent().set(&to_key, &(to_balance + amount));
+        env.storage()
+            .persistent()
+            .set(&from_key, &(from_balance - amount));
+        env.storage()
+            .persistent()
+            .set(&to_key, &(to_balance + amount));
     }
 
     pub fn balance(env: Env, id: Address) -> i128 {
-        env.storage().persistent().get(&DataKey::Balance(id)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::Balance(id))
+            .unwrap_or(0)
     }
 
     pub fn name(env: Env) -> String {

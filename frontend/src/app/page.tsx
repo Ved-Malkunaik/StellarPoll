@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { checkConnection, connectWallet, getPollState, vote, getVoterChoice, getTokenBalance, PollState } from "./utils/soroban";
 import Background from "./components/Background";
 import ConnectWallet from "./components/ConnectWallet";
@@ -15,6 +15,27 @@ export default function Home() {
   const [isVoting, setIsVoting] = useState(false);
   const [userChoice, setUserChoice] = useState<number>(-1);
   const [userTokenBalance, setUserTokenBalance] = useState<bigint>(BigInt(0));
+
+  const fetchPollState = useCallback(async () => {
+    try {
+      const state = await getPollState();
+      if (state) {
+        setPollState(state);
+      }
+
+      // Also refresh voted status if logged in
+      if (walletAddress) {
+        const [choice, balance] = await Promise.all([
+          getVoterChoice(walletAddress),
+          state ? getTokenBalance(walletAddress, state.token) : Promise.resolve(BigInt(0))
+        ]);
+        setUserChoice(choice);
+        setUserTokenBalance(balance);
+      }
+    } catch (e) {
+      console.error("Failed to fetch poll state", e);
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     // Check wallet connection on load
@@ -46,28 +67,7 @@ export default function Home() {
     fetchPollState().then(() => setIsLoading(false)); // Initial fetch
 
     return () => clearInterval(interval);
-  }, []);
-
-  const fetchPollState = async () => {
-    try {
-      const state = await getPollState();
-      if (state) {
-        setPollState(state);
-      }
-
-      // Also refresh voted status if logged in
-      if (walletAddress) {
-        const [choice, balance] = await Promise.all([
-          getVoterChoice(walletAddress),
-          state ? getTokenBalance(walletAddress, state.token) : Promise.resolve(BigInt(0))
-        ]);
-        setUserChoice(choice);
-        setUserTokenBalance(balance);
-      }
-    } catch (e) {
-      console.error("Failed to fetch poll state", e);
-    }
-  };
+  }, [fetchPollState]);
 
   const handleConnect = async () => {
     try {
@@ -124,11 +124,11 @@ export default function Home() {
         setTxStatus("ERROR");
         setErrorMessage(result?.error || "Transaction failed to submit.");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setTxStatus("ERROR");
-      console.warn("Vote error caught in UI:", e.message || e);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn("Vote error caught in UI:", msg);
 
-      const msg = e.message || String(e);
       if (msg.includes("Error(Contract, #1)")) {
         setErrorMessage("Invalid option selected.");
       } else if (msg.includes("Error(Contract, #2)")) {
@@ -143,7 +143,7 @@ export default function Home() {
     }
   };
 
-  const totalVotes = pollState?.votes.reduce((a, b) => a + b, 0) || 0;
+  const totalVotes = pollState?.votes.reduce((a: number, b: number) => a + b, 0) || 0;
 
   return (
     <main className="relative min-h-screen flex flex-col overflow-hidden font-sans text-slate-100">
