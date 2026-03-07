@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use super::*;
 use soroban_sdk::{testutils::Address as _, Env, String};
 
@@ -12,7 +10,7 @@ fn test_token() {
     let user1 = Address::generate(&env);
     let user2 = Address::generate(&env);
 
-    let contract_id = env.register_contract(None, Token);
+    let contract_id = env.register(Token, ());
     let client = TokenClient::new(&env, &contract_id);
 
     let name = String::from_str(&env, "PollToken");

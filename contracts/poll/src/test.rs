@@ -1,11 +1,5 @@
-#![cfg(test)]
-
 use super::*;
-use soroban_sdk::{
-    symbol_short,
-    testutils::{Address as _, Events},
-    vec, Env,
-};
+use soroban_sdk::{testutils::Address as _, vec, Env};
 
 #[test]
 fn test_init_and_vote() {
@@ -13,10 +7,12 @@ fn test_init_and_vote() {
     env.mock_all_auths();
 
     let admin = Address::generate(&env);
-    let token = env.register_stellar_asset_contract(admin.clone());
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
     let fee: i128 = 100;
 
-    let contract_id = env.register_contract(None, PollContract);
+    let contract_id = env.register(PollContract, ());
     let client = PollContractClient::new(&env, &contract_id);
 
     let question = String::from_str(&env, "Favorite Color?");
@@ -55,10 +51,12 @@ fn test_change_and_undo_vote() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register_contract(None, PollContract);
+    let contract_id = env.register(PollContract, ());
     let client = PollContractClient::new(&env, &contract_id);
     let admin = Address::generate(&env);
-    let token = env.register_stellar_asset_contract(admin.clone());
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
 
     let question = String::from_str(&env, "Q?");
     let options = vec![
@@ -90,11 +88,13 @@ fn test_invalid_option() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register_contract(None, PollContract);
+    let contract_id = env.register(PollContract, ());
     let client = PollContractClient::new(&env, &contract_id);
 
     let admin = Address::generate(&env);
-    let token = env.register_stellar_asset_contract(admin.clone());
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
 
     let question = String::from_str(&env, "Q?");
     let options = vec![
