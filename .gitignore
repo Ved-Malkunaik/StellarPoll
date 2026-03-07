@@ -1,0 +1,11 @@
+/target
+/build
+.env
+.env.local
+.env.*.local
+node_modules/
+dist/
+.DS_Store
+.next/
+out/
+*.log
