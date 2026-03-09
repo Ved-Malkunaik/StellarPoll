@@ -1,5 +1,5 @@
 use super::*;
-use soroban_sdk::{testutils::Address as _, vec, Env};
+use soroban_sdk::{testutils::Address as _, vec, Env, String};
 
 #[test]
 fn test_init_and_vote() {

@@ -6,20 +6,10 @@ use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String};
 #[derive(Clone)]
 enum DataKey {
     Admin,
-    Allowance(AllowanceDataKey),
     Balance(Address),
-    Nonce(Address),
-    State(Address),
     Name,
     Symbol,
     Decimals,
-}
-
-#[contracttype]
-#[derive(Clone)]
-struct AllowanceDataKey {
-    from: Address,
-    spender: Address,
 }
 
 #[contract]

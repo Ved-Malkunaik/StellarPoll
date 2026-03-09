@@ -162,7 +162,7 @@ impl PollContract {
                     );
 
                     ChangeEvent {
-                        voter: voter.clone(),
+                        voter,
                         old_option: old_index,
                         new_option: option_index,
                     }
@@ -180,7 +180,7 @@ impl PollContract {
                 );
 
                 VoteEvent {
-                    voter: voter.clone(),
+                    voter,
                     option: option_index,
                 }
                 .publish(&env);
