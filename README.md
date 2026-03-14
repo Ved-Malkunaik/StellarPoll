@@ -18,8 +18,6 @@
 
 <img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/8655fc48-503e-415b-bf81-2f537eae3fa0" />
 
-## CI/CD Pipeline (Running 2 Jobs Successfully) :
 
- - Soroban Contract CI :
   
 
