@@ -1,6 +1,6 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, Address, Env, Map, String, Vec,
+    contract, contracterror, contractimpl, contracttype, Address, BytesN, Env, Map, String, Vec,
 };
 
 use soroban_sdk::contractevent;
@@ -36,6 +36,7 @@ pub struct PollState {
     pub admin: Address,
     pub token: Address,
     pub fee: i128,
+    pub is_active: bool,
 }
 
 #[contracttype]
@@ -49,6 +50,7 @@ pub enum DataKey {
     Admin,
     Token,
     Fee,
+    IsActive,
 }
 
 #[contracterror]
@@ -59,6 +61,9 @@ pub enum PollError {
     PollNotInitialized = 2,
     PollAlreadyInitialized = 3,
     InsufficientFunds = 4,
+    TooManyOptions = 5,
+    PollClosed = 6,
+    NegativeFee = 7,
 }
 
 const DAY_IN_LEDGERS: u32 = 17280;
@@ -83,6 +88,12 @@ impl PollContract {
         if options.len() < 2 {
             panic!("At least 2 options required");
         }
+        if options.len() > 20 {
+            return Err(PollError::TooManyOptions);
+        }
+        if fee < 0 {
+            return Err(PollError::NegativeFee);
+        }
 
         if env.storage().instance().has(&DataKey::IsInit) {
             return Err(PollError::PollAlreadyInitialized);
@@ -99,6 +110,7 @@ impl PollContract {
         }
 
         env.storage().instance().set(&DataKey::IsInit, &true);
+        env.storage().instance().set(&DataKey::IsActive, &true);
         env.storage()
             .instance()
             .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_EXTEND);
@@ -117,6 +129,11 @@ impl PollContract {
 
         if !is_init {
             return Err(PollError::PollNotInitialized);
+        }
+
+        let is_active: bool = env.storage().instance().get(&DataKey::IsActive).unwrap_or(true);
+        if !is_active {
+            return Err(PollError::PollClosed);
         }
 
         let options: Vec<String> = env.storage().instance().get(&DataKey::Options).unwrap();
@@ -150,6 +167,12 @@ impl PollContract {
                 if old_index == option_index {
                     Self::update_vote_count(&env, old_index, false);
                     env.storage().persistent().remove(&voter_key);
+                    
+                    UnvoteEvent {
+                        voter,
+                        option: option_index,
+                    }
+                    .publish(&env);
                 } else {
                     Self::update_vote_count(&env, old_index, false);
                     Self::update_vote_count(&env, option_index, true);
@@ -247,6 +270,7 @@ impl PollContract {
                 "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
             )));
         let fee = env.storage().instance().get(&DataKey::Fee).unwrap_or(0);
+        let is_active = env.storage().instance().get(&DataKey::IsActive).unwrap_or(true);
 
         PollState {
             question,
@@ -255,6 +279,7 @@ impl PollContract {
             admin,
             token,
             fee,
+            is_active,
         }
     }
 
@@ -264,6 +289,20 @@ impl PollContract {
 
     pub fn get_voter_choice(env: Env, voter: Address) -> Option<u32> {
         env.storage().persistent().get(&DataKey::VoterChoice(voter))
+    }
+
+    pub fn toggle_poll(env: Env) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
+
+        let is_active: bool = env.storage().instance().get(&DataKey::IsActive).unwrap_or(true);
+        env.storage().instance().set(&DataKey::IsActive, &!is_active);
+    }
+
+    pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
     }
 }
 
