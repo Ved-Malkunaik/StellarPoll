@@ -61,6 +61,26 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; fini
 
 https://github.com/user-attachments/assets/059b36f5-3a16-4f66-8cee-082f770d2275
 
+## Inter Contract Call :
+
+The inter-contract call in your project happens inside the vote function in the contracts/poll/src/lib.rs file. Specifically, it is located between lines 127 and 139.
+
+-Specified code :
+        // --- INTER-CONTRACT CALL: Voting Fee ---
+        let fee: i128 = env.storage().instance().get(&DataKey::Fee).unwrap_or(0);
+        if fee > 0 {
+            // 1. Fetch the Token Contract Address and Admin Address from storage
+            let token_addr: Address = env.storage().instance().get(&DataKey::Token).unwrap();
+            let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+
+            // 2. Initialize the standard Soroban Token Client for that token address
+            let token_client = soroban_sdk::token::Client::new(&env, &token_addr);
+
+            // 3. ✨ THIS IS THE INTER-CONTRACT CALL ✨ 
+            // It invokes the `transfer` function on the Token Contract
+            token_client.transfer(&voter, &admin, &fee);
+        }
+   
 
 
 
