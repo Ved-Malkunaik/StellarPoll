@@ -80,6 +80,20 @@ The inter-contract call in your project happens inside the vote function in the 
             // It invokes the `transfer` function on the Token Contract
             token_client.transfer(&voter, &admin, &fee);
         }
+
+
+## Successfully Running CI/CD Pipeline :
+
+1. Soroban Contract CI :
+<img width="1919" height="847" alt="Screenshot 2026-03-17 123609" src="https://github.com/user-attachments/assets/3a819646-1706-45c5-8ce0-dd409d4351eb" />
+
+2. Frontend CI  :
+<img width="1919" height="859" alt="Screenshot 2026-03-17 123629" src="https://github.com/user-attachments/assets/319d4695-d457-4f3b-8869-b304f3333f82" />
+
+therefore, Successfully running 2 jobs.
+
+
+
    
 
 
