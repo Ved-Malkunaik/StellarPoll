@@ -37,7 +37,7 @@ CONTRACT_ID : 'CCF72V6Y2HN2L2OO7VXHRIW7IHRJDUJUM2X6LY4KFZ6JVZU3J5F75BKB'
 <img width="447" height="745" alt="image" src="https://github.com/user-attachments/assets/09a7c382-07ed-4bab-862c-e9b436cd6946" />
 
 
-## Test results (Passed 3 Tests) :
+## Test results (Passed 6 Tests) :
 
 1.test_init_and_vote :
 
@@ -56,6 +56,24 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; fini
 test test::test_invalid_option - should panic ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.05s
+
+4.test_too_many_options :
+
+test test::test_too_many_options - should panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.03s
+
+5.test_negative_fee :
+
+test test::test_negative_fee - should panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.03s
+
+6.test_toggle_poll :
+
+test test::test_toggle_poll - should panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.08s
 
 ## Working Demo Video :
 
