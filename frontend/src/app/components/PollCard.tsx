@@ -10,6 +10,7 @@ interface PollCardProps {
     isConnected?: boolean;
     userChoice?: number;
     userTokenBalance?: bigint;
+    networkFee?: string;
 }
 
 export default function PollCard({
@@ -21,6 +22,7 @@ export default function PollCard({
     isConnected = false,
     userChoice = -1,
     userTokenBalance = BigInt(0),
+    networkFee = "0.01200",
 }: PollCardProps) {
     if (!pollState || isLoading) {
         return (
@@ -51,27 +53,27 @@ export default function PollCard({
             <h2 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
                 {pollState.question}
             </h2>
-
-            {isConnected && (
-                <div className="flex flex-col items-center mb-8 space-y-2 animate-in fade-in zoom-in duration-500 delay-150">
+            <div className="flex flex-col items-center mb-8 space-y-2 animate-in fade-in zoom-in duration-500 delay-150 relative z-30">
+                {networkFee && (
                     <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-800/60 border border-white/10 shadow-inner">
-                        <span className="text-xs font-semibold text-slate-400 mr-2 uppercase tracking-widest">Fee:</span>
+                        <span className="text-xs font-semibold text-slate-400 mr-2 uppercase tracking-widest">Net Fee:</span>
                         <span className="text-sm font-bold text-cyan-400">
-                            {(Number(pollState.fee) / 10 ** 18).toFixed(2)} POLL
+                            ~{networkFee} XLM
                         </span>
                     </div>
-                    {userTokenBalance < pollState.fee ? (
-                        <div className="flex items-center text-red-400 text-[10px] font-bold uppercase tracking-tighter bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20">
-                            <span className="mr-1">⚠️ Low Tokens:</span>
-                            <span>{(Number(userTokenBalance) / 10 ** 18).toFixed(2)} POLL</span>
-                        </div>
-                    ) : (
-                        <div className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
-                            Balance: <span className="text-slate-300">{(Number(userTokenBalance) / 10 ** 18).toFixed(2)} POLL</span>
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
+                {userTokenBalance < pollState.fee ? (
+                    <div className="flex items-center text-red-400 text-[10px] font-bold uppercase tracking-tighter bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20">
+                        <span className="mr-1">⚠️ Low Tokens:</span>
+                        <span>{(Number(userTokenBalance) / 10 ** 7).toFixed(2)} POLL</span>
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
+                        Balance: <span className="text-slate-300">{(Number(userTokenBalance) / 10 ** 7).toFixed(2)} POLL</span>
+                    </div>
+                )}
+            </div>
+
 
             <div className={`space-y-4 transition-all duration-500 ${!isConnected ? 'opacity-40 grayscale-[0.8] pointer-events-none' : ''}`}>
                 {pollState.options.map((option, idx) => {
@@ -155,3 +157,4 @@ export default function PollCard({
         </div>
     );
 }
+
