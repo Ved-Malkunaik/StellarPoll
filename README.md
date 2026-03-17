@@ -92,6 +92,9 @@ The inter-contract call in your project happens inside the vote function in the 
 
 therefore, Successfully running 2 jobs.
 
+## Mobile View :
+
+<img width="353" height="760" alt="image" src="https://github.com/user-attachments/assets/cc03d5be-2e9f-4ce8-9517-6a5ed63b951e" />
 
 
    
