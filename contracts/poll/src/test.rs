@@ -108,3 +108,79 @@ fn test_invalid_option() {
     let voter = Address::generate(&env);
     client.vote(&voter, &2);
 }
+
+#[test]
+#[should_panic(expected = "Error(Contract, #5)")]
+fn test_too_many_options() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(PollContract, ());
+    let client = PollContractClient::new(&env, &contract_id);
+    let admin = Address::generate(&env);
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
+
+    let question = String::from_str(&env, "Q?");
+    let mut options = vec![&env];
+    for i in 0..21 {
+        options.push_back(String::from_str(&env, "Option"));
+    }
+
+    client.init(&admin, &token, &0, &question, &options);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #7)")]
+fn test_negative_fee() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(PollContract, ());
+    let client = PollContractClient::new(&env, &contract_id);
+    let admin = Address::generate(&env);
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
+
+    let question = String::from_str(&env, "Q?");
+    let options = vec![
+        &env,
+        String::from_str(&env, "A"),
+        String::from_str(&env, "B"),
+    ];
+
+    client.init(&admin, &token, &-100, &question, &options);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_toggle_poll() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(PollContract, ());
+    let client = PollContractClient::new(&env, &contract_id);
+    let admin = Address::generate(&env);
+    let token = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
+
+    let question = String::from_str(&env, "Q?");
+    let options = vec![
+        &env,
+        String::from_str(&env, "A"),
+        String::from_str(&env, "B"),
+    ];
+    client.init(&admin, &token, &0, &question, &options);
+
+    let voter = Address::generate(&env);
+    client.vote(&voter, &0); 
+    
+
+    client.toggle_poll();
+    
+    client.vote(&voter, &1);
+}
+
