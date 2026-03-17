@@ -124,7 +124,7 @@ fn test_too_many_options() {
 
     let question = String::from_str(&env, "Q?");
     let mut options = vec![&env];
-    for i in 0..21 {
+    for _i in 0..21 {
         options.push_back(String::from_str(&env, "Option"));
     }
 
@@ -176,11 +176,13 @@ fn test_toggle_poll() {
     client.init(&admin, &token, &0, &question, &options);
 
     let voter = Address::generate(&env);
-    client.vote(&voter, &0); 
-    
+    client.vote(&voter, &0); // Should succeed
 
+    // Admin toggles the poll off
     client.toggle_poll();
-    
+
+    // Subsequent vote should panic with PollClosed (Error #6)
     client.vote(&voter, &1);
 }
+
 
