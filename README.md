@@ -1,10 +1,10 @@
 ## Introduction to StellarPoll :
- Stellar poll is a simple voting dapp which allows you to vote on a question via freighter wallet.✨
+ Stellar poll is a simple voting DApp which allows you to vote on a question via Freighter wallet.✨
  
- ## Pre-Requesits to Run :
+ ## Pre-Requesites to Run :
 
  1. Download Freighter wallet web extension.
- 2. set up your Freighter Wallet.
+ 2. Set up your Freighter Wallet.
  3. VS code should be installed
     
  ## How To Run :
