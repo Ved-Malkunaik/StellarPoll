@@ -1,3 +1,5 @@
+
+import { useMemo } from "react";
 import { PollState } from "../utils/soroban";
 import ProgressBar from "./ProgressBar";
 
@@ -13,6 +15,8 @@ interface PollCardProps {
     networkFee?: string;
 }
 
+const TOKEN_DECIMALS = 10 ** 7;
+
 export default function PollCard({
     pollState,
     totalVotes,
@@ -24,10 +28,43 @@ export default function PollCard({
     userTokenBalance = BigInt(0),
     networkFee = "0.01200",
 }: PollCardProps) {
+
+    const isPending = txStatus === "PENDING";
+    const isLowBalance = pollState
+        ? userTokenBalance < pollState.fee
+        : false;
+
+    const formattedBalance = useMemo(
+        () => (Number(userTokenBalance) / TOKEN_DECIMALS).toFixed(2),
+        [userTokenBalance]
+    );
+
+    const options = useMemo(() => {
+        if (!pollState) return [];
+
+        return pollState.options.map((option, idx) => {
+            const voteCount = pollState.votes[idx] ?? 0;
+            const percentage =
+                totalVotes > 0
+                    ? (voteCount / totalVotes) * 100
+                    : 0;
+
+            return {
+                option,
+                idx,
+                voteCount,
+                percentage,
+                isSelected: userChoice === idx,
+            };
+        });
+    }, [pollState, totalVotes, userChoice]);
+
+    // Loading Skeleton
     if (!pollState || isLoading) {
         return (
             <div className="w-full max-w-xl mx-auto p-8 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl animate-pulse">
                 <div className="h-8 bg-slate-700/50 rounded-lg w-3/4 mx-auto mb-8" />
+
                 <div className="space-y-4">
                     <div className="h-16 bg-slate-800/50 rounded-xl" />
                     <div className="h-16 bg-slate-800/50 rounded-xl" />
@@ -38,90 +75,143 @@ export default function PollCard({
 
     return (
         <div className="w-full max-w-xl mx-auto p-8 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden transition-all duration-500">
-            {/* Glow effect */}
+
+            {/* Glow Effect */}
             <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50" />
 
+            {/* Wallet Connection Overlay */}
             {!isConnected && (
                 <div className="absolute inset-0 z-20 bg-slate-900/40 backdrop-blur-[4px] flex items-center justify-center p-6 text-center group cursor-default">
                     <div className="bg-slate-950/80 border border-white/10 p-6 rounded-2xl shadow-2xl transform transition-transform group-hover:scale-105">
-                        <p className="text-cyan-400 font-bold mb-2">Connect to Participate</p>
-                        <p className="text-slate-300 text-sm">Sign in with your wallet to see results and cast your vote.</p>
+                        <p className="text-cyan-400 font-bold mb-2">
+                            Connect to Participate
+                        </p>
+
+                        <p className="text-slate-300 text-sm">
+                            Sign in with your wallet to see results and cast your vote.
+                        </p>
                     </div>
                 </div>
             )}
 
+            {/* Poll Question */}
             <h2 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
                 {pollState.question}
             </h2>
+
+            {/* Network Fee and Token Balance */}
             <div className="flex flex-col items-center mb-8 space-y-2 animate-in fade-in zoom-in duration-500 delay-150 relative z-30">
+
                 {networkFee && (
                     <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-800/60 border border-white/10 shadow-inner">
-                        <span className="text-xs font-semibold text-slate-400 mr-2 uppercase tracking-widest">Net Fee:</span>
+                        <span className="text-xs font-semibold text-slate-400 mr-2 uppercase tracking-widest">
+                            Net Fee:
+                        </span>
+
                         <span className="text-sm font-bold text-cyan-400">
                             ~{networkFee} XLM
                         </span>
                     </div>
                 )}
-                {userTokenBalance < pollState.fee ? (
+
+                {isLowBalance ? (
                     <div className="flex items-center text-red-400 text-[10px] font-bold uppercase tracking-tighter bg-red-500/10 px-2 py-1 rounded-md border border-red-500/20">
                         <span className="mr-1">⚠️ Low Tokens:</span>
-                        <span>{(Number(userTokenBalance) / 10 ** 7).toFixed(2)} POLL</span>
+                        <span>{formattedBalance} POLL</span>
                     </div>
                 ) : (
                     <div className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
-                        Balance: <span className="text-slate-300">{(Number(userTokenBalance) / 10 ** 7).toFixed(2)} POLL</span>
+                        Balance:{" "}
+                        <span className="text-slate-300">
+                            {formattedBalance} POLL
+                        </span>
                     </div>
                 )}
             </div>
 
-
-            <div className={`space-y-4 transition-all duration-500 ${!isConnected ? 'opacity-40 grayscale-[0.8] pointer-events-none' : ''}`}>
-                {pollState.options.map((option, idx) => {
-                    const voteCount = pollState.votes[idx] || 0;
-                    const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
-                    const isPending = txStatus === "PENDING";
-                    const isSelected = userChoice === idx;
-
-                    return (
+            {/* Poll Options */}
+            <div
+                className={`space-y-4 transition-all duration-500 ${
+                    !isConnected
+                        ? "opacity-40 grayscale-[0.8] pointer-events-none"
+                        : ""
+                }`}
+            >
+                {options.map(
+                    ({
+                        option,
+                        idx,
+                        voteCount,
+                        percentage,
+                        isSelected,
+                    }) => (
                         <button
                             key={idx}
+                            type="button"
                             onClick={() => vote(idx)}
                             disabled={isPending || !isConnected}
-                            className={`w-full group relative overflow-hidden rounded-xl border transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed ${isSelected
-                                ? 'border-cyan-500/80 bg-cyan-500/15 shadow-[0_0_20px_rgba(6,182,212,0.15)]'
-                                : 'border-white/5 bg-slate-800/40 hover:border-cyan-500/40 hover:bg-slate-700/50'
-                                }`}
+                            aria-label={`${option}, ${percentage.toFixed(1)} percent, ${voteCount} votes`}
+                            aria-pressed={isSelected}
+                            className={`w-full group relative overflow-hidden rounded-xl border transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed ${
+                                isSelected
+                                    ? "border-cyan-500/80 bg-cyan-500/15 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                                    : "border-white/5 bg-slate-800/40 hover:border-cyan-500/40 hover:bg-slate-700/50"
+                            }`}
                         >
                             <div className="relative p-4 z-10 text-left">
+
+                                {/* Option Title */}
                                 <div className="flex justify-between items-center mb-1">
                                     <div className="flex items-center space-x-3">
-                                        <span className={`font-semibold text-lg transition-colors ${isSelected ? 'text-white' : 'text-slate-100 group-hover:text-white'
-                                            }`}>
+                                        <span
+                                            className={`font-semibold text-lg transition-colors ${
+                                                isSelected
+                                                    ? "text-white"
+                                                    : "text-slate-100 group-hover:text-white"
+                                            }`}
+                                        >
                                             {option}
                                         </span>
+
                                         {isConnected && isSelected && (
                                             <span className="flex items-center px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-500/30 animate-in fade-in zoom-in duration-300">
                                                 My Choice
                                             </span>
                                         )}
                                     </div>
+
                                     {isConnected && (
-                                        <span className={`font-mono text-sm ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`}>
+                                        <span
+                                            className={`font-mono text-sm ${
+                                                isSelected
+                                                    ? "text-cyan-400"
+                                                    : "text-slate-400"
+                                            }`}
+                                        >
                                             {percentage.toFixed(1)}%
                                         </span>
                                     )}
                                 </div>
 
+                                {/* Voting Progress */}
                                 {isConnected ? (
                                     <>
                                         <ProgressBar
                                             percentage={percentage}
-                                            color={isSelected ? "bg-gradient-to-r from-cyan-400 to-blue-500" : "bg-gradient-to-r from-slate-500 to-slate-600"}
+                                            color={
+                                                isSelected
+                                                    ? "bg-gradient-to-r from-cyan-400 to-blue-500"
+                                                    : "bg-gradient-to-r from-slate-500 to-slate-600"
+                                            }
                                         />
+
                                         <div className="flex justify-between items-center mt-1">
                                             <span className="text-[10px] text-slate-500 font-medium italic">
-                                                {isSelected ? "Click again to undo" : "Click to select"}
+                                                {isSelected
+                                                    ? "Click again to undo"
+                                                    : "Click to select"}
                                             </span>
+
                                             <span className="text-xs text-slate-400 font-mono">
                                                 {voteCount} votes
                                             </span>
@@ -132,24 +222,52 @@ export default function PollCard({
                                 )}
                             </div>
                         </button>
-                    );
-                })}
+                    )
+                )}
             </div>
 
+            {/* Transaction Status */}
             {isConnected && txStatus !== "IDLE" && (
                 <div className="mt-6 text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+
                     {txStatus === "PENDING" && (
                         <span className="inline-flex items-center text-yellow-400 text-sm font-mono">
-                            <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <svg
+                                className="animate-spin -ml-1 mr-3 h-4 w-4 text-yellow-400"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                />
                             </svg>
+
                             Syncing Selection With Blockchain...
                         </span>
                     )}
+
                     {txStatus === "SUCCESS" && (
                         <span className="text-green-400 text-sm font-mono font-bold drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]">
                             ✨ Selection Confirmed Successfully
+                        </span>
+                    )}
+
+                    {txStatus === "ERROR" && (
+                        <span className="text-red-400 text-sm font-mono font-bold">
+                            ⚠️ Transaction Failed. Please Try Again.
                         </span>
                     )}
                 </div>
